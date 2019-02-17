@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">落書きアプリ</string>
+    <string name="button_black">black</string>
+    <string name="button_white">white</string>
+    <string name="button_red">red</string>
+    <string name="button_green">green</string>
+    <string name="button_blue">blue</string>
+    <string name="button_small">small</string>
+    <string name="button_medium">medium</string>
+    <string name="button_large">large</string>
+    <string name="button_clear">clear</string>
+</resources>
