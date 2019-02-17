@@ -42,5 +42,5 @@
 
 ## 著作権
 
-- GlossaryAppの全ての配布物は「zlib/libpngライセンス」を適用します。
+- RakugakiAppの全ての配布物は「zlib/libpngライセンス」を適用します。
 - (C) 2019 aktera.
