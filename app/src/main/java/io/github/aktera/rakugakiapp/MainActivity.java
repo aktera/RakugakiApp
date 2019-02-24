@@ -70,6 +70,16 @@ public class MainActivity extends AppCompatActivity {
         view.onClickButtonLarge(v);
     }
 
+    public void onClickButtonSave(View v) {
+        RakugakiView view = findViewById(R.id.view_rakugaki);
+        view.onClickButtonSave(v);
+    }
+
+    public void onClickButtonLoad(View v) {
+        RakugakiView view = findViewById(R.id.view_rakugaki);
+        view.onClickButtonLoad(v);
+    }
+
     public void onClickButtonClear(View v) {
         RakugakiView view = findViewById(R.id.view_rakugaki);
         view.onClickButtonClear(v);

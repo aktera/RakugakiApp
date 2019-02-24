@@ -1,17 +1,26 @@
 package io.github.aktera.rakugakiapp;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.support.design.widget.Snackbar;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static android.content.Context.MODE_PRIVATE;
+import static android.graphics.Bitmap.Config.ARGB_8888;
 
 public class RakugakiView extends View {
 
@@ -25,6 +34,11 @@ public class RakugakiView extends View {
 
     private float preX = 0.0f;
     private float preY = 0.0f;
+
+    private float lineSmall = 3.0f;
+    private float lineMedium = 8.0f;
+    private float lineLarge = 13.0f;
+
 
 /*
   ┏━━━━━━━━━━━━━━━━━━┓
@@ -47,16 +61,16 @@ public class RakugakiView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         // メモリキャンバスを作成する
-        bitmapMemory = Bitmap.createBitmap(getWidth(),getHeight(),Bitmap.Config.ARGB_8888);
+        bitmapMemory = Bitmap.createBitmap(getWidth(),getHeight(), ARGB_8888);
         canvasMemory = new Canvas(bitmapMemory);
 
         // 線描画キャンバスを作成する
-        bitmapLine = Bitmap.createBitmap(getWidth(),getHeight(),Bitmap.Config.ARGB_8888);
+        bitmapLine = Bitmap.createBitmap(getWidth(),getHeight(), ARGB_8888);
         canvasLine = new Canvas(bitmapLine);
 
         // ペイント属性を初期化しておく
         paint.setColor(0xff000000);
-        paint.setStrokeWidth(convertDp2Px(4.0f,getContext()));
+        paint.setStrokeWidth(convertDp2Px(lineSmall, getContext()));
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -148,18 +162,37 @@ public class RakugakiView extends View {
     }
 
     public void onClickButtonSmall(View v) {
-        paint.setStrokeWidth(convertDp2Px(4.0f, getContext()));
+        paint.setStrokeWidth(convertDp2Px(lineSmall, getContext()));
         invalidate();
     }
 
     public void onClickButtonMedium(View v) {
-        paint.setStrokeWidth(convertDp2Px(8.0f, getContext()));
+        paint.setStrokeWidth(convertDp2Px(lineMedium, getContext()));
         invalidate();
     }
 
     public void onClickButtonLarge(View v) {
-        paint.setStrokeWidth(convertDp2Px(12.0f, getContext()));
+        paint.setStrokeWidth(convertDp2Px(lineLarge, getContext()));
         invalidate();
+    }
+
+    public void onClickButtonSave(View v) {
+        // キャンバスを保存する
+        saveCanvas(getContext());
+        invalidate();
+    }
+
+    public void onClickButtonLoad(View v) {
+        // 保存されたキャンバスファイルが存在するなら
+        String path = getContext().getFilesDir() + "/" + getContext().getString(R.string.path_canvas);
+        if (isPathExists(path)) {
+            // メモリキャンバスを透過色でリセットする
+            canvasMemory.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+            // 保存されたキャンバスを読み込む
+            loadCanvas(getContext());
+            invalidate();
+        }
     }
 
     public void onClickButtonClear(View v) {
@@ -180,10 +213,45 @@ public class RakugakiView extends View {
         return px / metrics.density;
     }
 
-    // スナックバーにメッセージをポップアップする
-    private void snackbarMessage(String message) {
-        Activity activity = (Activity)getContext();
-        Snackbar.make(activity.getWindow().getDecorView(), message, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+    // キャンバスを保存する
+    public void saveCanvas(Context context) {
+        try {
+            // 出力ストリームを開く
+            String path = context.getString(R.string.path_canvas);
+            FileOutputStream outStream = context.openFileOutput(path, MODE_PRIVATE);
+
+            // メモリキャンバスのビットマップをエンコードしてストリームに出力する
+            bitmapMemory.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+            outStream.close();
+        } catch (FileNotFoundException e) {
+            Log.d("RakugakiView", e.toString());
+        } catch (IOException e) {
+            Log.d("RakugakiView", e.toString());
+        }
+    }
+
+    // 保存されたキャンバスを読み込む
+    public void loadCanvas(Context context) {
+        InputStream inputStream = null;
+        try {
+            // 入力ストリームを開く
+            String path = context.getString(R.string.path_canvas);
+            inputStream = context.openFileInput(path);
+
+            // 読み込んだビットマップをデコードし、メモリキャンバスに書き出す
+            Bitmap image = BitmapFactory.decodeStream(inputStream);
+            canvasMemory.drawBitmap(image, 0, 0, null);
+            inputStream.close();
+        } catch (FileNotFoundException e) {
+            Log.d("RakugakiView", e.toString());
+        } catch (IOException e) {
+            Log.d("RakugakiView", e.toString());
+        }
+    }
+
+    // パスが存在するか調べる
+    public static boolean isPathExists(String filepathpath) {
+        File file = new File(filepathpath);
+        return file.exists();
     }
 }

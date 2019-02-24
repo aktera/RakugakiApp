@@ -8,5 +8,8 @@
     <string name="button_small">small</string>
     <string name="button_medium">medium</string>
     <string name="button_large">large</string>
+    <string name="button_save">save</string>
+    <string name="button_load">load</string>
     <string name="button_clear">clear</string>
+    <string name="path_canvas">canvas.png</string>
 </resources>
