@@ -35,9 +35,7 @@ public class RakugakiView extends View {
     private float preX = 0.0f;
     private float preY = 0.0f;
 
-    private float lineSmall = 3.0f;
-    private float lineMedium = 8.0f;
-    private float lineLarge = 13.0f;
+    private float curStrokeWidth = 5.0f;
 
 
 /*
@@ -70,7 +68,7 @@ public class RakugakiView extends View {
 
         // ペイント属性を初期化しておく
         paint.setColor(0xff000000);
-        paint.setStrokeWidth(convertDp2Px(lineSmall, getContext()));
+        paint.setStrokeWidth(convertDp2Px(curStrokeWidth, getContext()));
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeJoin(Paint.Join.ROUND);
         paint.setStrokeCap(Paint.Cap.ROUND);
@@ -87,12 +85,16 @@ public class RakugakiView extends View {
     public boolean onTouchEvent(MotionEvent motionEvent) {
         float x = motionEvent.getX();
         float y = motionEvent.getY();
+        float pressure = motionEvent.getPressure();
 
         switch (motionEvent.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 // メモリキャンバスを透過色でリセットする
                 //canvasLine.drawColor(0xffffffff);
                 canvasLine.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+                // 筆圧対応
+                paint.setStrokeWidth(convertDp2Px(convPressure(pressure), getContext()));
 
                 // 点を描画し、メモリキャンバスにコピーし、再描画を指示する
                 canvasLine.drawPoint(x, y, paint);
@@ -105,6 +107,9 @@ public class RakugakiView extends View {
                 break;
 
             case MotionEvent.ACTION_UP:
+                // 筆圧対応
+                paint.setStrokeWidth(convertDp2Px(convPressure(pressure), getContext()));
+
                 // 線を描画し、メモリキャンバスにコピーし、再描画を指示する
                 canvasLine.drawLine(preX, preY, x, y, paint);
                 canvasMemory.drawBitmap(bitmapLine, 0, 0, null);
@@ -116,6 +121,9 @@ public class RakugakiView extends View {
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                // 筆圧対応
+                paint.setStrokeWidth(convertDp2Px(convPressure(pressure), getContext()));
+
                 // 線を描画し、メモリキャンバスにコピーし、再描画を指示する
                 canvasLine.drawLine(preX, preY, x, y, paint);
                 canvasMemory.drawBitmap(bitmapLine, 0, 0, null);
@@ -162,18 +170,22 @@ public class RakugakiView extends View {
     }
 
     public void onClickButtonSmall(View v) {
-        paint.setStrokeWidth(convertDp2Px(lineSmall, getContext()));
+        curStrokeWidth = 5.0f;
         invalidate();
     }
 
     public void onClickButtonMedium(View v) {
-        paint.setStrokeWidth(convertDp2Px(lineMedium, getContext()));
+        curStrokeWidth = 10.0f;
         invalidate();
     }
 
     public void onClickButtonLarge(View v) {
-        paint.setStrokeWidth(convertDp2Px(lineLarge, getContext()));
+        curStrokeWidth = 15.0f;
         invalidate();
+    }
+
+    private float convPressure(float src) {
+        return curStrokeWidth * src;
     }
 
     public void onClickButtonSave(View v) {
